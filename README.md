@@ -2,8 +2,7 @@
 <html>
 <body>
 
-<p>This is a paragraph.</p>
-<p>This is another paragraph.</p>
+<p>linux information in core linux.txt.</p>
 
 </body>
 </html>

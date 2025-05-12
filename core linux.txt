@@ -1,0 +1,435 @@
+1] Create, Delete, Copy, Move, and Rename Files and Directories
+
+# Create a file
+touch myfile.txt
+
+# Create a directory
+mkdir mydir
+
+
+delete
+# Delete a file
+rm myfile.txt
+
+# Delete a directory and its contents
+rm -r mydir
+
+copy
+# Copy a file
+cp source.txt destination.txt
+
+# Copy a directory recursively
+cp -r sourcedir targetdir
+
+move/rename
+# Move or rename a file
+mv oldname.txt newname.txt
+
+# Move a file to a directory
+mv file.txt mydir/
+
+
+
+Script to Back Up a Directory into a .tar.gz File
+#!/bin/bash
+
+# Directory to back up (you can change this)
+SOURCE_DIR="$1"
+# Backup destination
+DEST_DIR="$2"
+# Backup filename with date
+BACKUP_FILE="backup_$(basename "$SOURCE_DIR")_$(date +%F_%H-%M-%S).tar.gz"
+
+# Create the backup
+tar -czf "$DEST_DIR/$BACKUP_FILE" "$SOURCE_DIR"
+
+echo "Backup of '$SOURCE_DIR' completed: $DEST_DIR/$BACKUP_FILE"
+
+
+usage
+chmod +x backup.sh
+./backup.sh /path/to/source /path/to/destination
+
+
+
+🔹 Section 2: Permissions
+✅ Change File Permissions and Ownership
+Change Permissions:
+bash
+Copy
+Edit
+# Give read, write, execute to owner; read to group; none to others
+chmod 740 myfile.txt
+
+# Make a script executable
+chmod +x script.sh
+Change Ownership:
+bash
+Copy
+Edit
+# Change owner to user 'john'
+sudo chown john myfile.txt
+
+# Change owner and group
+sudo chown john:developers myfile.txt
+🛡️ Script: Find Files with 777 Permissions and Log Them
+bash
+Copy
+Edit
+#!/bin/bash
+
+# Directory to scan
+TARGET_DIR=${1:-.}
+# Log file
+LOG_FILE="world_writable_files_$(date +%F).log"
+
+# Find and log files with 777 permissions
+find "$TARGET_DIR" -type f -perm 0777 > "$LOG_FILE"
+
+echo "Files with 777 permissions saved to: $LOG_FILE"
+Usage:
+bash
+Copy
+Edit
+chmod +x find_777.sh
+./find_777.sh /path/to/scan
+
+🔹 Section 3: Basic Bash Scripting
+✅ Script: Print Current Date, Time, Username, and Hostname
+bash
+Copy
+Edit
+#!/bin/bash
+
+echo "Date      : $(date +%F)"
+echo "Time      : $(date +%T)"
+echo "Username  : $USER"
+echo "Hostname  : $HOSTNAME"
+Save as info.sh and run with:
+
+bash
+Copy
+Edit
+chmod +x info.sh
+./info.sh
+📋 Menu-Driven Script: System Info, Disk Usage, Uptime
+bash
+Copy
+Edit
+#!/bin/bash
+
+while true; do
+    echo "------ System Menu ------"
+    echo "1. Display System Information"
+    echo "2. Show Disk Usage"
+    echo "3. Show Uptime"
+    echo "4. Exit"
+    echo "--------------------------"
+    read -p "Enter your choice [1-4]: " choice
+
+    case "$choice" in
+        1)
+            echo "--- System Information ---"
+            uname -a
+            ;;
+        2)
+            echo "--- Disk Usage ---"
+            df -h
+            ;;
+        3)
+            echo "--- System Uptime ---"
+            uptime
+            ;;
+        4)
+            echo "Exiting."
+            break
+            ;;
+        *)
+            echo "Invalid choice. Please try again."
+            ;;
+    esac
+
+    echo "" # empty line
+done
+Save as menu.sh and run with:
+
+bash
+Copy
+Edit
+chmod +x menu.sh
+./menu.sh
+Would you like to add more options like CPU or memory usage to the menu?
+
+
+🔹 Section 4: Loops and Conditionals
+✅ Script: Read a List of IPs from a File and Ping Them
+bash
+Copy
+Edit
+#!/bin/bash
+
+IP_LIST="ips.txt"  # File containing one IP per line
+
+while read -r ip; do
+    if ping -c 1 -W 1 "$ip" &>/dev/null; then
+        echo "$ip is reachable"
+    else
+        echo "$ip is NOT reachable"
+    fi
+done < "$IP_LIST"
+📄 Create ips.txt with one IP per line before running.
+
+✅ Script: Print Prime Numbers from 1 to 100
+bash
+Copy
+Edit
+#!/bin/bash
+
+echo "Prime numbers from 1 to 100:"
+
+for ((n=2; n<=100; n++)); do
+    is_prime=1
+    for ((i=2; i*i<=n; i++)); do
+        if ((n % i == 0)); then
+            is_prime=0
+            break
+        fi
+    done
+    ((is_prime)) && echo "$n"
+done
+🔹 Section 5: Process Management
+✅ Script: Check if a Process is Running and Restart It if Not
+bash
+Copy
+Edit
+#!/bin/bash
+
+PROCESS_NAME="nginx"
+
+if pgrep "$PROCESS_NAME" > /dev/null; then
+    echo "$PROCESS_NAME is running."
+else
+    echo "$PROCESS_NAME is not running. Attempting to start..."
+    sudo systemctl start "$PROCESS_NAME"
+fi
+Replace "nginx" with your target process. Adjust restart command if not using systemd.
+
+✅ Script: Monitor Top 5 Memory-Consuming Processes
+bash
+Copy
+Edit
+#!/bin/bash
+
+echo "Top 5 memory-consuming processes:"
+ps aux --sort=-%mem | awk 'NR==1 || NR<=6 {printf "%-10s %-10s %-10s %-10s\n", $1, $2, $3, $11}'
+This displays the user, PID, memory %, and command for the top 5 memory consumers.
+
+
+🔹 Section 6: Log Parsing
+✅ Script: Analyze Apache or Syslog Logs
+Example: Top 10 IPs and error counts in Apache logs
+
+bash
+Copy
+Edit
+#!/bin/bash
+
+LOG_FILE="/var/log/apache2/access.log"
+
+echo "Top 10 IP addresses:"
+awk '{print $1}' "$LOG_FILE" | sort | uniq -c | sort -nr | head -10
+
+echo -e "\nHTTP Error Counts (4xx and 5xx):"
+awk '$9 ~ /^[45]/ {print $9}' "$LOG_FILE" | sort | uniq -c | sort -nr
+Change LOG_FILE to your actual log path (e.g., /var/log/syslog).
+
+✅ Script: Monitor a Log File and Alert on Keyword
+bash
+Copy
+Edit
+#!/bin/bash
+
+LOG_FILE="/var/log/syslog"
+KEYWORD="ERROR"
+ALERT_LOG="alerts.log"
+
+tail -Fn0 "$LOG_FILE" | \
+while read line; do
+    echo "$line" | grep -q "$KEYWORD"
+    if [ $? = 0 ]; then
+        echo "[ALERT] $(date): $line" >> "$ALERT_LOG"
+        echo "ERROR found: $line"
+    fi
+done
+This uses tail -F to follow the log in real-time and detect keyword hits.
+
+🔹 Section 7: Scheduling
+✅ Use cron to Schedule a Backup Script
+Edit crontab:
+
+bash
+Copy
+Edit
+crontab -e
+Schedule backup every day at 2am:
+
+swift
+Copy
+Edit
+0 2 * * * /path/to/backup.sh /home/user/data /mnt/backup
+Ensure backup.sh is executable and tested.
+
+✅ Script: Hourly Disk Space Monitor with Email Alert
+bash
+Copy
+Edit
+#!/bin/bash
+
+THRESHOLD=80
+EMAIL="admin@example.com"
+
+df -h | grep '^/dev/' | while read line; do
+    USAGE=$(echo $line | awk '{print $5}' | sed 's/%//')
+    MOUNT=$(echo $line | awk '{print $6}')
+    
+    if [ "$USAGE" -gt "$THRESHOLD" ]; then
+        echo "Disk usage on $MOUNT is above $THRESHOLD%: $USAGE%" | \
+        mail -s "Disk Alert: $MOUNT" "$EMAIL"
+    fi
+done
+Install mailutils or mailx for sending emails. Add to crontab:
+
+pgsql
+Copy
+Edit
+0 * * * * /path/to/disk_alert.sh
+
+🔹 Section 8: Text Processing
+✅ Extract CSV Fields Using cut, awk, and sed
+Example CSV (users.csv):
+
+graphql
+Copy
+Edit
+id,name,email
+1,Alice,alice@example.com
+2,Bob,bob@example.com
+Extract name and email with cut:
+
+bash
+Copy
+Edit
+cut -d',' -f2,3 users.csv
+Same with awk:
+
+bash
+Copy
+Edit
+awk -F',' '{print $2, $3}' users.csv
+With sed (removing the first field):
+
+bash
+Copy
+Edit
+sed 's/^[^,]*,//' users.csv
+✅ Script to Parse a Config File and Display Key-Value Pairs
+Example Config (app.conf):
+
+ini
+Copy
+Edit
+username=admin
+password=secret
+host=localhost
+port=8080
+Parser:
+
+bash
+Copy
+Edit
+#!/bin/bash
+
+CONFIG_FILE="app.conf"
+
+while IFS='=' read -r key value; do
+    # Ignore lines that are empty or comments
+    [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+    echo "Key: $key | Value: $value"
+done < "$CONFIG_FILE"
+🔹 Section 9: User Management
+✅ Script to Add Multiple Users from a File
+File (userlist.txt) format:
+
+nginx
+Copy
+Edit
+john
+alice
+bob
+Script:
+
+bash
+Copy
+Edit
+#!/bin/bash
+
+FILE="userlist.txt"
+
+while read -r user; do
+    if id "$user" &>/dev/null; then
+        echo "User $user already exists."
+    else
+        sudo useradd "$user" && echo "User $user added."
+    fi
+done < "$FILE"
+✅ Lock Accounts Not Used in 30 Days
+bash
+Copy
+Edit
+#!/bin/bash
+
+INACTIVE_USERS=$(lastlog --before 30 | awk 'NR>1 {print $1}')
+
+for user in $INACTIVE_USERS; do
+    sudo usermod -L "$user"
+    echo "Locked user: $user"
+done
+Requires lastlog to be populated. Might exclude system accounts manually if needed.
+
+🔹 Section 10: Networking
+✅ Check if Specific Ports Are Open on a Remote Server
+bash
+Copy
+Edit
+#!/bin/bash
+
+HOST="example.com"
+PORTS=(22 80 443)
+
+for port in "${PORTS[@]}"; do
+    nc -zv "$HOST" "$port" &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "Port $port is open on $HOST"
+    else
+        echo "Port $port is closed on $HOST"
+    fi
+done
+Requires netcat (nc) installed.
+
+✅ Monitor Internet Connectivity and Log Downtime
+bash
+Copy
+Edit
+#!/bin/bash
+
+LOGFILE="net_monitor.log"
+PING_TARGET="8.8.8.8"
+
+if ! ping -c 1 -W 2 "$PING_TARGET" &>/dev/null; then
+    echo "$(date): Internet is DOWN" >> "$LOGFILE"
+else
+    echo "$(date): Internet is UP" >> "$LOGFILE"
+fi
+Add to crontab to run every 5 minutes for regular logging.
+
+Would you like to combine these into a larger monitoring or admin toolkit script

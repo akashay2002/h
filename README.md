@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<p>linux information in core linux.txt.</p>
+<p>All information in core linux.txt.</p>
 
 </body>
 </html>
